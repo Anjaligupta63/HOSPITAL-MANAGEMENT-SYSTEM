@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breast Cancer Awareness</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Breast Cancer Awareness</h1>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#risk-calculator">Risk Calculator</a>
+      <a href="#resources">Resources</a>
+    </nav>
+  </header>
+
+  <section id="about">
+    <h2>What is Breast Cancer?</h2>
+    <p>Breast cancer is a disease in which cells in the breast grow out of control. It is one of the most common types of cancer among women.</p>
+  </section>
+
+  <section id="risk-calculator">
+    <h2>Breast Cancer Risk Calculator</h2>
+    <form id="calculator-form">
+      <label for="age">Age:</label>
+      <input type="number" id="age" name="age" required>
+
+      <label for="family-history">Family History of Breast Cancer:</label>
+      <select id="family-history" name="family-history">
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+
+      <label for="lifestyle">Lifestyle (Smoker, Alcohol Consumption):</label>
+      <select id="lifestyle" name="lifestyle">
+        <option value="high">High Risk</option>
+        <option value="moderate">Moderate Risk</option>
+        <option value="low">Low Risk</option>
+      </select>
+
+      <button type="submit">Calculate Risk</button>
+    </form>
+
+    <p id="result-message"></p>
+  </section>
+
+  <section id="resources">
+    <h2>Breast Cancer Resources</h2>
+    <ul>
+      <li><a href="https://www.who.int">World Health Organization</a></li>
+      <li><a href="https://www.cancer.org">American Cancer Society</a></li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>&copy; 2024 Breast Cancer Awareness Project</p>
+  </footer>
+
+  <script src="script.js"></script>
+  import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.pipeline import Pipeline
+
+# Step 1: Load the dataset
+data = pd.read_csv(r'C:\Users\Nisht\OneDrive\Desktop\python\breast-cancer-data.csv')
+
+# Step 2: Data Preprocessing
+# Remove quotes from the data
+for column in data.select_dtypes(include=[object]).columns:
+    data[column] = data[column].str.strip("'")
+
+# Define the features and the target variable
+X = data.drop('class', axis=1)
+y = data['class'].map(lambda x: 1 if x == 'recurrence-events' else 0)  # 1 for recurrence, 0 for no recurrence
+
+# Step 3: One-Hot Encoding for categorical variables
+categorical_features = X.columns.tolist()
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('cat', OneHotEncoder(drop='first'), categorical_features)
+    ])
+
+    # Step 4: Create a pipeline that first preprocesses the data, then scales it, and finally applies logistic regression
+    pipeline = Pipeline(steps=[
+        ('preprocessor', preprocessor),
+        ('scaler', StandardScaler(with_mean=False)),  # with_mean=False due to one-hot encoding
+        ('classifier', LogisticRegression(max_iter=1000))
+    ])
+    
+    # Step 5: Split the data into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    # Step 6: Train the model
+    pipeline.fit(X_train, y_train)
+    
+    # Step 7: Evaluate the model
+    y_pred = pipeline.predict(X_test)
+    print("Accuracy:", accuracy_score(y_test, y_pred))
+    
+    # Step 8: Example prediction with input data
+    # Example input data (replace with actual data as needed)
+    input_data = pd.DataFrame({
+        'age': ['50-59'],
+        'menopause': ['ge40'],
+        'tumer-size': ['25-29'],
+        'inv-nodes': ['0-2'],
+        'node-caps': ['yes'],
+        'deg-malig': ['2'],
+        'breast': ['left'],
+        'breast-quad': ['left_low'],
+        'irradiate': ['no']
+    })
+    # Predict using the model pipeline
+prediction = pipeline.predict(input_data)
+
+# Print the prediction result
+if prediction[0] == 1:
+    print("Predicted: Recurrence-Events (Cancerous)")
+else:
+    print("Predicted: No-Recurrence-Events (Non-Cancerous)")
+</body>
+</
